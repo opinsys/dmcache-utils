@@ -1,0 +1,24 @@
+dmcache utilities
+=================
+
+mkdmcache
+---------
+
+Create a cache device.
+
+Usage: mkdmcache CACHE_NAME CACHE_DISK ORIG_DEV
+
+CACHE_NAME - a name for the device mapper cache device
+
+CACHE_DISK - the disk device to be used as a cache
+
+ORIG_DEV   - the device to be cached
+
+rmdmcache
+---------
+
+Remove a cache device.
+
+Usage: rmdmcache CACHE_NAME
+
+CACHE_NAME - a name of an existing cache device
