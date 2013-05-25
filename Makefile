@@ -12,7 +12,7 @@ installdirs :
 
 install : installdirs
 	$(INSTALL_PROGRAM) -t $(DESTDIR)$(sbindir) \
-		sbin/mkdmcache \
-		sbin/rmdmcache
+		dmc-load \
+		dmc-mklvm
 
 clean :
