@@ -3,6 +3,7 @@ exec_prefix=$(prefix)
 sbindir=$(exec_prefix)/sbin
 sysconfdir=$(prefix)/etc
 
+INSTALL=install
 INSTALL_PROGRAM=$(INSTALL)
 INSTALL_DATA=$(INSTALL) -m 644
 
