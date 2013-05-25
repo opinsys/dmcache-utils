@@ -1,24 +1,28 @@
 dmcache utilities
 =================
 
-mkdmcache
+dmc-load
+--------
+
+Load and activate dmcache devices defined in /etc/dmctab.
+
+Usage: dmc-load [NAME]
+
+NAME - a name of the device mapper cache device defined in
+       /etc/dmctab. If not given, load all dmctab entries.
+
+dmc-mklvm
 ---------
 
-Create a cache device.
+Format a disk with LVM partitions suitable for dmcache devices.
 
-Usage: mkdmcache CACHE_NAME CACHE_DISK ORIG_DEV
+Usage: dmc-mklvm [-b CACHE_BLOCK_SIZE=512] VG PV
 
-CACHE_NAME - a name for the device mapper cache device
+CACHE_BLOCK_SIZE - the size of cache blocks. This is used to calculate
+                   the optimal size for the metadata device. Default
+                   is 512 sectors.
 
-CACHE_DISK - the disk device to be used as a cache
+VG - name for the volume group
 
-ORIG_DEV   - the device to be cached
-
-rmdmcache
----------
-
-Remove a cache device.
-
-Usage: rmdmcache CACHE_NAME
-
-CACHE_NAME - a name of an existing cache device
+PV - physical volume for the volume group, e.g. a disk, a disk
+     partition, etc.

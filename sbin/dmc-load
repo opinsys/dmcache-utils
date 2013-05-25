@@ -1,0 +1,22 @@
+#!/bin/sh
+
+egrep -vr '^\s*#' /etc/dmcachetab | while read name metadata_dev cache_dev origin_dev block_size rest; do
+
+    dmsetup ls --target cache | egrep -q "^${name}\s+" && {
+        echo "W: dmcache '${name}' already exists" >&2
+        continue
+    }
+
+    origin_dev_size=$(blockdev --getsz "${origin_dev}")
+    if [ $? -ne 0 ]; then
+	echo "E: failed to get the size of the origin device '${origin_dev}'" >&2
+	continue
+    fi
+
+    dmsetup create "${name}" \
+        --table "0 ${origin_dev_size} cache ${metadata_dev} ${cache_dev} ${origin_dev} ${block_size} ${rest}" || {
+        echo "E: failed to load dmcache '${name}'" >&2
+	continue
+    }
+
+done

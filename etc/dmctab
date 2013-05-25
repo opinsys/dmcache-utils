@@ -1,0 +1,5 @@
+## Format:
+## NAME METADATA_DEV DATA_DEV ORIGIN_DEV CACHE_BLOCK_SIZE CACHE_ARGS...
+##
+## Example:
+# homecache /dev/homecache/metadata /dev/homecache/data /dev/mapper/main-home 512 0 default 0

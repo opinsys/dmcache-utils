@@ -1,0 +1,64 @@
+#!/bin/bash
+
+set -eu
+
+on_exit()
+{
+    local exitval=$?
+    set +e
+
+    if [ $exitval -ne 0 ]; then
+	[ $vgcreated ] && vgremove -f "${vg}"
+	[ $pvcreated ] && pvremove "${pv}"
+    fi
+
+    exit $exitval
+}
+
+cache_block_size=512
+
+while getopts b: flag; do
+    case $flag in
+        b)
+            cache_block_size="$OPTARG"
+            ;;
+        ?)
+            exit 1
+            ;;
+    esac
+done
+
+shift $((OPTIND - 1))
+
+if [ $# -ne 2 ]; then
+    echo "E: invalid arguments" >&2
+    echo "Usage: $(basename $0) [-b CACHE_BLOCK_SIZE] VG PV"
+    exit 1
+fi
+
+vg=$1
+pv=$2
+
+pv_size=$(blockdev --getsz "${pv}")
+
+pvcreated=
+vgcreated=
+
+trap on_exit EXIT
+
+echo "Creating physical volume \"${pv}\""
+pvcreate "${pv}"
+pvcreated=1
+
+echo "Creating volume group \"${vg}\""
+vgcreate "${vg}" "${pv}"
+vgcreated=1
+
+# https://www.redhat.com/archives/dm-devel/2012-December/msg00046.html
+metadata_kb=$(echo "(${pv_size} / ${cache_block_size} * 16 + 5000000) / 1024" | bc)
+
+echo "Creating logical volume \"metadata\""
+lvcreate -L "${metadata_kb}KB" --name metadata "${vg}"
+
+echo "Creating logical volume \"data\""
+lvcreate -l '100%FREE' --name data "${vg}"
