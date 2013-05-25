@@ -1,6 +1,8 @@
 #!/bin/sh
 
-egrep -vr '^\s*#' /etc/dmctab | while read name metadata_dev cache_dev origin_dev block_size rest; do
+. dmc-env
+
+egrep -vr '^\s*#' "${DMC_SYSCONFDIR}/dmctab" | while read name metadata_dev cache_dev origin_dev block_size rest; do
 
     dmsetup ls --target cache | egrep -q "^${name}\s+" && {
         echo "W: dmcache '${name}' already exists" >&2
