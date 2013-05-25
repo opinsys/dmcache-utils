@@ -1,8 +1,6 @@
 prefix=/usr/local
 exec_prefix=$(prefix)
-bindir=$(exec_prefix)/bin
 sbindir=$(exec_prefix)/sbin
-sysconfdir=$(prefix)/etc
 
 INSTALL=install
 INSTALL_PROGRAM=$(INSTALL)
@@ -10,23 +8,23 @@ INSTALL_DATA=$(INSTALL) -m 644
 
 all :
 
-dmc-env :
-	echo "#!/bin/sh" >$@
-	echo "export DMC_SYSCONFDIR=\"$(sysconfdir)\"" >>$@
-
 installdirs :
-	mkdir -p $(DESTDIR)$(bindir)
+	mkdir -p $(DESTDIR)/etc
+	mkdir -p $(DESTDIR)/sbin
 	mkdir -p $(DESTDIR)$(sbindir)
-	mkdir -p $(DESTDIR)$(sysconfdir)
 
-install : dmc-env installdirs
-	$(INSTALL_PROGRAM) -t $(DESTDIR)$(bindir) \
-		dmc-env
+install : installdirs
+	# dmc-load must be in a known place for udev rules to find it,
+	# hence the path is hard-coded here.
+	$(INSTALL_PROGRAM) -t $(DESTDIR)/sbin \
+		dmc-load
+	# Userland tools can be installed anywhere, configurable
+	# sbindir is ok
 	$(INSTALL_PROGRAM) -t $(DESTDIR)$(sbindir) \
-		dmc-load \
 		dmc-mklvm
-	$(INSTALL_DATA) -t $(DESTDIR)$(sysconfdir) \
+	# dmctab must be in a known place for dmc-load to find it,
+	# hence the path is hard-coded here.
+	$(INSTALL_DATA) -t $(DESTDIR)/etc \
 		dmctab
-	rm dmc-env
 
 clean :
