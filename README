@@ -1,5 +1,16 @@
-dmcache utilities
-=================
+Device mapper cache utilities
+=============================
+
+License: GPLv2+, see COPYING for details
+
+This project provides few simple scripts to simplify the usage of
+dmcache devices. These scripts are based on the work of Darrick
+J. Wong [1]. They have been rewritten and simplified to better fit our
+needs. I was also scared of getting my BIOS reflashed with rude
+poetry.
+
+[1]: http://djwong.org/docs/dmcache-tools.tar.gz
+[2]: http://www.redhat.com/archives/dm-devel/2013-March/msg00057.html
 
 dmc-load
 --------
