@@ -12,6 +12,7 @@ installdirs :
 	mkdir -p $(DESTDIR)/etc
 	mkdir -p $(DESTDIR)/sbin
 	mkdir -p $(DESTDIR)$(sbindir)
+	mkdir -p $(DESTDIR)/lib/udev/rules.d
 
 install : installdirs
 	# dmc-load must be in a known place for udev rules to find it,
@@ -26,5 +27,8 @@ install : installdirs
 	# hence the path is hard-coded here.
 	$(INSTALL_DATA) -t $(DESTDIR)/etc \
 		dmctab
+
+	$(INSTALL_DATA) -t $(DESTDIR)/lib/udev/rules.d \
+		86-dmc.rules
 
 clean :
