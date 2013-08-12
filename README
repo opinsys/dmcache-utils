@@ -1,5 +1,6 @@
-Device mapper cache utilities
-=============================
+===============================
+ Device mapper cache utilities
+===============================
 
 License: GPLv2+, see COPYING for details
 
@@ -12,10 +13,16 @@ poetry [2].
 [1]: http://djwong.org/docs/dmcache-tools.tar.gz
 [2]: http://www.redhat.com/archives/dm-devel/2013-March/msg00057.html
 
+Commands
+========
+
 dmc-load
 --------
 
-Load and activate dmcache devices defined in /etc/dmctab.
+Load and activate dmcache devices defined in /etc/dmctab. Quite
+naturally, this command must be executed before mounting cached
+partitions. Hence, it's a good practice to set udev run it. See
+86-dmc.rules.
 
 Usage: dmc-load [NAME]
 
@@ -37,3 +44,30 @@ VG - name for the volume group
 
 PV - physical volume for the volume group, e.g. a disk, a disk
      partition, etc.
+
+Setup example
+=============
+
+Assumptions:
+
+- the cache disk (SSD-disk) is /dev/sda
+- the cached partition is /dev/mapper/main-home
+- 'homecache' is the desired name for the cache volume group
+
+Run::
+
+  dmc-mklvm homecache /dev/sda
+
+Add the following entry to /etc/dmctab::
+
+  homecache /dev/homecache/metadata /dev/homecache/data /dev/mapper/main-home 512 0 default 0
+
+Edit /etc/fstab to mount /home from the cache device by adding the following entry::
+
+  /dev/mapper/homecache   /home   ext4    defaults    0       2
+
+Remember also to comment or remove the previous /home mount entry::
+
+  #/dev/mapper/main-home  /home   ext4    defaults    0       2
+
+Copy 86-dmc.rules to /lib/udev/rules.d if its not already there.
