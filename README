@@ -52,19 +52,19 @@ Assumptions:
 
 - the cache disk (SSD-disk) is /dev/sda
 - the cached partition is /dev/mapper/main-home
-- 'homecache' is the desired name for the cache volume group
+- 'cache-home' is the desired name for the cache volume group
 
 Run::
 
-  dmc-mklvm homecache /dev/sda
+  dmc-mklvm cache-home /dev/sda
 
 Add the following entry to /etc/dmctab::
 
-  homecache /dev/homecache/metadata /dev/homecache/data /dev/mapper/main-home 512 0 default 0
+  cache-home /dev/cache-home/metadata /dev/cache-home/data /dev/mapper/main-home 512 0 default 0
 
 Edit /etc/fstab to mount /home from the cache device by adding the following entry::
 
-  /dev/mapper/homecache   /home   ext4    defaults    0       2
+  /dev/mapper/cache-home   /home   ext4    defaults    0       2
 
 Remember also to comment or remove the previous /home mount entry::
 
