@@ -29,6 +29,18 @@ Usage: dmc-load [NAME]
 NAME - a name of the device mapper cache device defined in
        /etc/dmctab. If not given, load all dmctab entries.
 
+dmc-unload
+----------
+
+Deactivate and unload dmcache devices defined in /etc/dmctab. This is a
+logical counterpart of dmc-load and does reverse operations in reverse
+order.
+
+Usage: dmc-unload [NAME]
+
+NAME - a name of the device mapper cache device defined in
+       /etc/dmctab. If not given, unload all dmctab entries.
+
 dmc-mklvm
 ---------
 

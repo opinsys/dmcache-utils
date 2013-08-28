@@ -18,7 +18,8 @@ install : installdirs
 	# dmc-load must be in a known place for udev rules to find it,
 	# hence the path is hard-coded here.
 	$(INSTALL_PROGRAM) -t $(DESTDIR)/sbin \
-		dmc-load
+		dmc-load \
+		dmc-unload
 	# Userland tools can be installed anywhere, configurable
 	# sbindir is ok
 	$(INSTALL_PROGRAM) -t $(DESTDIR)$(sbindir) \
