@@ -1,0 +1,16 @@
+Source: dmcache-utils
+Section: admin
+Priority: extra
+Maintainer: Opinsys Developers <dev@opinsys.fi>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.3
+Homepage: https://github.com/opinsys/dmcache-utils
+
+Package: dmcache-utils
+Architecture: all
+Depends: ${misc:Depends}, dmsetup, lvm2, udev
+Description: Device mapper cache utilities
+ Provides tools for formatting and creating dmcache devices.
+ - dmc-load: load and activate dmcache devices defined in /etc/dmctab
+ - dmc-mklvm: format a disk with LVM partitions suitable for dmcache devices
+ .
