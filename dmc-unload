@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2013 Opinsys Oy
 #
@@ -12,7 +12,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-egrep -vr '^\s*#' /etc/dmctab | while read name metadata_dev cache_dev origin_dev block_size _; do
+while read name metadata_dev cache_dev origin_dev block_size _; do
 
     if [ -n "$1" ]; then
         if [ "${name}" != "$1" ]; then
@@ -25,13 +25,34 @@ egrep -vr '^\s*#' /etc/dmctab | while read name metadata_dev cache_dev origin_de
         continue
     }
 
+    read -a table < <(dmsetup table "${name}")
+
+    # Sanity check: only for cache targets. Admin has done something
+    # really wrong if this test triggers an error. In that case, admin
+    # knows better.
+    if [ "${table[2]}" != "cache" ]; then
+        echo "E: unexpected device mapper target '${table[2]}', expected 'cache'" >&2
+        continue
+    fi
+
+    # Sanity check: cleanup only if the device is in a normal state
+    # executing a normal policy. This is the default, but might differ
+    # if admin has done something. In that case, admin knows better.
+    if [ "${table[8]}" != "default" ]; then
+        echo "E: unexpected cache policy '${table[8]}', expected 'default'" >&2
+        continue
+    fi
+
     dmsetup suspend "${name}" || {
         echo "E: failed to suspend dmdcache '${name}', perhaps umount it first?" >&2
         continue
     }
 
-    dmsetup reload "${name}" \
-        --table "0 ${origin_dev_size} cache ${metadata_dev} ${cache_dev} ${origin_dev} ${block_size} 0 cleaner 0" || {
+    # Setup cleaner policy by reloading the device with a modified
+    # table.
+    table[8]="cleaner" # Set new policy ...
+    table[9]=0         # ... without any args.
+    dmsetup reload "${name}" --table "${table[*]}" || {
         echo "E: failed to reload dmcache '${name}' with cleanup policy" >&2
         continue
     }
@@ -41,15 +62,9 @@ egrep -vr '^\s*#' /etc/dmctab | while read name metadata_dev cache_dev origin_de
         continue
     }
 
-    dmsetup wait "${name}" || {
-        echo "E: failed to wait until all dirty blocks of dmcache '${name}' are written to backing volume" >&2
-        continue
-        
-    }
-
     dmsetup remove "${name}" || {
         echo "E: failed to remove dmcache '${name}'" >&2
         continue
     }
 
-done
+done < <(egrep -vr '^\s*#' /etc/dmctab)
