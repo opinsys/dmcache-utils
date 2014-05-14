@@ -35,13 +35,19 @@ while read name metadata_dev cache_dev origin_dev block_size _; do
         continue
     fi
 
-    # Sanity check: cleanup only if the device is in a normal state
-    # executing a normal policy. This is the default, but might differ
-    # if admin has done something. In that case, admin knows better.
-    if [ "${table[8]}" != "default" ]; then
-        echo "E: unexpected cache policy '${table[8]}', expected 'default'" >&2
-        continue
-    fi
+    # Sanity check: cleanup only if the device is in an expected state
+    # executing an expected policy. It should be either 'default' or
+    # 'cleaner', but might differ if admin has done something. In that
+    # case, admin knows better and should be able to unload the cache
+    # manually.
+    case "${table[8]}" in
+        default|cleaner)
+            ;;
+        *)
+            echo "E: unexpected cache policy '${table[8]}', expected 'default' or 'cleaner'" >&2
+            continue
+            ;;
+    esac
 
     dmsetup suspend "${name}" || {
         echo "E: failed to suspend dmdcache '${name}', perhaps umount it first?" >&2
