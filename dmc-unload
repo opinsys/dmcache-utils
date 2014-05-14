@@ -12,13 +12,88 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+set -eu
+
+usage_error()
+{
+    echo "E: $1" >&2
+    echo "Try '$0 --help' for more information." >&2
+    return 1
+}
+
+log_info()
+{
+    local name
+    local msg
+
+    name=$1
+    msg=$2
+
+    if ! ${quiet_ARG}; then
+        echo "I: ${name}: ${msg}" >&2
+    fi
+}
+
+name_ARG=
+quiet_ARG=false
+
+while [ $# -gt 0 ]; do
+    case $1 in
+        -h|--help)
+            shift
+            echo "Usage: $0 [NAME]"
+            echo
+            echo "Deactivate and unload dmcache devices defined in /etc/dmctab."
+            echo
+            echo "More specifically, this command flushes cache devices to their backing"
+            echo "devices. This is a logical counterpart of dmc-load and does reverse"
+            echo "operations in reverse order."
+            echo
+            echo "NAME is the name of the dmcache device (the value of the first column"
+            echo "in /etc/dmctab). If not given, dmc-unload tries to unload all devices"
+            echo "defined /etc/dmctab."
+            echo
+            echo "Options:"
+            echo "    -q, --quiet                  do not print processing info"
+            echo "    -h, --help                   print help and exit"
+            echo
+            exit 0
+            ;;
+        -q|--quiet)
+            shift
+            quiet_ARG=true
+            ;;
+        --)
+            shift
+            break
+            ;;
+        -*)
+            usage_error "invalid argument '$1'"
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+if [ $# -eq 1 ]; then
+    name_ARG=$1
+    shift
+fi
+
+if [ $# -ne 0 ]; then
+    usage_error "invalid number of arguments ($#), expected 0"
+fi
+
 while read name metadata_dev cache_dev origin_dev block_size _; do
 
-    if [ -n "$1" ]; then
-        if [ "${name}" != "$1" ]; then
+    if [ -n "${name_ARG}" ]; then
+        if [ "${name}" != "${name_ARG}" ]; then
             continue
         fi
     fi
+
+    log_info "${name}" "unloading"
 
     dmsetup ls --target cache | egrep -q "^${name}\s+" || {
         echo "W: dmcache '${name}' does not exist" >&2
@@ -49,11 +124,13 @@ while read name metadata_dev cache_dev origin_dev block_size _; do
             ;;
     esac
 
+    log_info "${name}" "suspending"
     dmsetup suspend "${name}" || {
         echo "E: failed to suspend dmdcache '${name}', perhaps umount it first?" >&2
         continue
     }
 
+    log_info "${name}" "reloading with 'cleaner' policy"
     # Setup cleaner policy by reloading the device with a modified
     # table.
     table[8]="cleaner" # Set new policy ...
@@ -63,11 +140,13 @@ while read name metadata_dev cache_dev origin_dev block_size _; do
         continue
     }
 
+    log_info "${name}" "resuming"
     dmsetup resume "${name}" || {
         echo "E: failed to resume dmdcache '${name}' with cleanup policy" >&2
         continue
     }
 
+    log_info "${name}" "removing"
     dmsetup remove "${name}" || {
         echo "E: failed to remove dmcache '${name}'" >&2
         continue
